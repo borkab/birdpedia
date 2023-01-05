@@ -3,28 +3,24 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
-	//the HandleFunc method accepts a path and a function as arguments
+	//declare a new router
+	r := mux.NewRouter()
 
-	http.HandleFunc("/", handler)
+	//this is where the router is useful, it allows us to declare methods
+	//that this path will be valid for
+	r.HandleFunc("/hello", handler).Methods("GET")
 
-	//after defining our server, we finally "listen and serve" on port 8080
-	//the second argument is the handler, which we now left as nil
-	//and the handler defined above (in HandleFunc) is used
-	http.ListenAndServe(":8080", nil)
+	//we can then pass our router (after declareing all our routes) to this method
+	//where previousrly we were leaving our second argument as nil
+	http.ListenAndServe(":8080", r)
 }
 
-// handler is our handler function. It has to follow the function signature
-// of a ResponseWriter and Request type as the arguments.
 func handler(w http.ResponseWriter, r *http.Request) {
 
-	//for this case we will always pipe "Hello World" into the response writer
-	fmt.Fprintf(w, "Hello World")
-	//Fprintf takes a "writer" As its first argument.
-	//the second argument is the data that is piped into this writer.
-	//the output therefore appears according to where the writermoves it.
-	//in this cse the ResponseWriter w writes the output as the response to the users request.
-
+	fmt.Fprintf(w, "Hello World!")
 }
