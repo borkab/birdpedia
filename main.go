@@ -7,16 +7,21 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func main() {
-	//declare a new router
+//the new router function creates the router and
+//returns it to us. We can now use this function to
+//instantiate and test the router outside of the main function
+
+func newRouter() *mux.Router {
 	r := mux.NewRouter()
-
-	//this is where the router is useful, it allows us to declare methods
-	//that this path will be valid for
 	r.HandleFunc("/hello", handler).Methods("GET")
+	return r
+}
 
-	//we can then pass our router (after declareing all our routes) to this method
-	//where previousrly we were leaving our second argument as nil
+func main() {
+	//the router is now formed by calling the `newRouter`
+	//constructor function that we defined above.
+	//The rest of the code stazs the same
+	r := newRouter()
 	http.ListenAndServe(":8080", r)
 }
 
