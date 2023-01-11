@@ -2,10 +2,46 @@ package main
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
+
+func ErrCheck(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func TestRouterForNonExistentRoute(t *testing.T) {
+	r := newRouter()
+	mockServer := httptest.NewServer(r)
+	//Most of the code is similar. The only difference is that now we make a
+	//request to a route we know we didn't define, like the `POST /hello` route.
+	resp, err := http.Post(mockServer.URL+"/hello", "", nil)
+
+	ErrCheck(err)
+
+	//We want our status to be 405(method not allowed)
+	if resp.StatusCode != http.StatusMethodNotAllowed {
+		t.Errorf("Status should be 405, got %d", resp.StatusCode)
+	}
+
+	//the code to test the body is also mostly the same, except this time,
+	//we expect an empty body
+	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+
+	ErrCheck(err)
+	respString := string(b)
+	expected := ""
+
+	if respString != expected {
+		t.Errorf("Response should be %s, got %s", expected, respString)
+	}
+
+}
 
 func TestRouter(t *testing.T) {
 	//instantiate the router using the constructor function that
@@ -24,9 +60,7 @@ func TestRouter(t *testing.T) {
 	resp, err := http.Get(mockServer.URL + "/hello")
 
 	//handle any unexpected error
-	if err != nil {
-		t.Fatal(err)
-	}
+	ErrCheck(err)
 
 	//we want our status to be 200 (ok)
 	if resp.StatusCode != http.StatusOK {
@@ -39,9 +73,7 @@ func TestRouter(t *testing.T) {
 	//read the body into a bunch of bytes (b)
 	b, err := io.ReadAll(resp.Body)
 
-	if err != nil {
-		t.Fatal(err)
-	}
+	ErrCheck(err)
 
 	//convert the bytes to a string
 	respString := string(b)
@@ -54,6 +86,7 @@ func TestRouter(t *testing.T) {
 		t.Errorf("Response should be %s, got %s", expected, respString)
 	}
 }
+
 func TestHandler(t *testing.T) {
 	//here we form a new HTTP request
 	//this is the request that's going to be passed to our handler
@@ -63,9 +96,7 @@ func TestHandler(t *testing.T) {
 	req, err := http.NewRequest("GET", "", nil)
 
 	//in case there is an error in forming the request, we fail and stop the test
-	if err != nil {
-		t.Fatal(err)
-	}
+	ErrCheck(err)
 
 	//we use GO's httptest library to create an http recorder.
 	//this recorder will act as the target of our http request
